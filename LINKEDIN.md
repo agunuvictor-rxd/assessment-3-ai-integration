@@ -1,21 +1,15 @@
-# LinkedIn Post — Assessment 3: AI Integration Slice
+# LinkedIn Post — Metis Bootcamp Assessment 3: AI Integration Slice
 
-**Why you should never trust your LLM's JSON mode (and how we engineered defensive AI worker pipelines)**
+🤖 **Metis Academic Co-Pilot — Assessment 3: Structured AI Pipelines & Concurrency Architecture**
 
-Almost every tutorial on integrating AI models shows the same pattern: you send a prompt with `response_format: { type: "json_object" }`, parse the output with `JSON.parse()`, and immediately save it to your database.
+Why relying on unvalidated LLM output will break your product (and how we built schema validation resilience in Node.js).
 
-The hidden danger? "JSON mode" only guarantees syntactically valid JSON. It does NOT guarantee that the fields actually match your application schema. A model can return negative numbers for years of experience, omit critical required fields, or substitute string arrays with nested objects—instantly crashing your frontend or corrupting downstream services.
+For the third milestone of the **Metis Academic Co-Pilot** build, I engineered the **AI Integration Slice** for **Kinase**, Metis's AI study engine. Kinase converts raw undergraduate course material (syllabi, slides, study notes) into structured study summaries, flashcard decks, and practice quizzes.
 
-For the third milestone of our Product Engineering Bootcamp, I built an asynchronous AI Integration Slice in Node.js and SQLite that analyzes job specifications and synthesizes technical interview rubrics.
+### Key AI Engineering Accomplishments:
+1. **Runtime Zod Schema Validation**: LLM outputs are validated against strict Zod schemas before being returned to students. If output parsing fails, an automated retry strategy re-prompts the model with explicit schema reminders.
+2. **Prompt Injection Guardrails**: Sanitizes incoming study materials to prevent system prompt overrides or context leaks.
+3. **Async Background Queue & Concurrency Caps**: Decouples document uploads from AI processing using an async job queue with strict worker concurrency limits (`maxConcurrentJobs = 2`), protecting upstream API rate limits.
+4. **Latency & Token Metrics Profiling**: Tracks token consumption and inference latency in SQLite for performance auditing.
 
-We adopted a strictly defensive engineering posture:
-1. **Never trust provider schema enforcement**: Every model response is asserted against strict Zod schemas directly in application code.
-2. **Automated retry with backoff**: If a model returns invalid schema types, the background worker catches the Zod validation error, increments the attempt count (capped at `MAX_RETRIES = 2`), and re-prompts the model. If retries are exhausted, the job transitions gracefully to a `failed` state with the exact validation error recorded in SQLite.
-3. **Controlled worker concurrency**: If a user uploads 50 files at once, we return HTTP `202 Accepted` immediately and offload processing to an asynchronous queue with `MAX_CONCURRENT_JOBS = 2`. Exactly two provider calls execute in parallel at any given second, preventing rate limit breaches (HTTP 429) and unpredictable cost spikes.
-
-We also separated responsibilities into two distinct AI roles with specialized system prompts: Role 1 (Extraction) runs at temperature `0.2` for zero-hallucination factual fidelity, while Role 2 (Interview Rubric Synthesis) runs at temperature `0.5` for creative question formulation.
-
-Check out the architecture, concurrency test suites, and reproducible failure evidence:
-https://github.com/developer/assessment-3-ai-integration
-
-#SoftwareEngineering #ArtificialIntelligence #NodeJS #SystemDesign #BackendEngineering #LLMOps
+#AI #MachineLearning #NodeJS #Metis #LLM #Zod #SoftwareEngineering #BackendDevelopment #PromptEngineering
