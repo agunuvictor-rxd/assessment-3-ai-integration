@@ -1,0 +1,8 @@
+=== 9. CONTROLLED CONCURRENCY CAP EVIDENCE (10 Simultaneous Jobs Enqueued) ===
+Total Jobs Enqueued:        10
+Configured Concurrency Cap: 2 (MAX_CONCURRENT_JOBS = 2)
+Observed Peak Concurrency:  2 (Strictly <= 2)
+All 10 Jobs Completed:      YES (10 of 10 completed)
+
+Architectural Protection:
+If a user uploads 50 files simultaneously, 50 job records are queued in SQLite, but the background worker limits simultaneous provider calls to 2, completely preventing API rate limit exhaustion and unexpected burst billing.

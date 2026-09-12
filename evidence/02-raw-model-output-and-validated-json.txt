@@ -1,0 +1,21 @@
+=== 4. RAW MODEL OUTPUT (Captured Directly From LLM Inference) ===
+{"roleTitle":"Senior Backend Engineer","seniority":"Lead","department":"Engineering","requiredSkills":["SQL","PostgreSQL","Docker","Kubernetes"],"minYearsExperience":5,"responsibilities":["Design, build, and maintain high-performance backend microservices.","Collaborate with product and QA engineers to deliver resilient software slices.","Enforce security best practices, database integrity, and automated test coverage."]}
+
+=== 5. VALIDATED APPLICATION RESULT (Parsed and Asserted Against Zod Schema) ===
+{
+  "roleTitle": "Senior Backend Engineer",
+  "seniority": "Lead",
+  "department": "Engineering",
+  "requiredSkills": [
+    "SQL",
+    "PostgreSQL",
+    "Docker",
+    "Kubernetes"
+  ],
+  "minYearsExperience": 5,
+  "responsibilities": [
+    "Design, build, and maintain high-performance backend microservices.",
+    "Collaborate with product and QA engineers to deliver resilient software slices.",
+    "Enforce security best practices, database integrity, and automated test coverage."
+  ]
+}

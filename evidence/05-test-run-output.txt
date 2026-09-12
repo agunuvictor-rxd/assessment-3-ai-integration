@@ -1,0 +1,21 @@
+◇ injected env (0) from .env // tip: ⌘ override existing { override: true }
+[WORKER] Job job_invalid_schema attempt 1/3 failed: Model output failed schema validation: roleTitle: Role title must be at least 2 characters; seniority: Invalid option: expected one of "Junior"|"Mid"|"Senior"|"Staff"|"Lead"; department: Invalid input: expected string, received undefined; requiredSkills: Invalid input: expected array, received undefined; minYearsExperience: Years of experience cannot be negative; responsibilities: At least one responsibility is required
+[WORKER] Job job_invalid_schema attempt 2/3 failed: Model output failed schema validation: roleTitle: Role title must be at least 2 characters; seniority: Invalid option: expected one of "Junior"|"Mid"|"Senior"|"Staff"|"Lead"; department: Invalid input: expected string, received undefined; requiredSkills: Invalid input: expected array, received undefined; minYearsExperience: Years of experience cannot be negative; responsibilities: At least one responsibility is required
+[WORKER] Job job_invalid_schema attempt 3/3 failed: Model output failed schema validation: roleTitle: Role title must be at least 2 characters; seniority: Invalid option: expected one of "Junior"|"Mid"|"Senior"|"Staff"|"Lead"; department: Invalid input: expected string, received undefined; requiredSkills: Invalid input: expected array, received undefined; minYearsExperience: Years of experience cannot be negative; responsibilities: At least one responsibility is required
+✔ Valid File & Background Processing: extracts structured JSON and validates schema (132.4713ms)
+✔ Storage Key Invariant: database stores storage key rather than file contents (2.6754ms)
+✔ Schema Validation Failure & Retry Handling: records failure and updates attempts (66.5486ms)
+[WORKER] Job job_timeout_test attempt 1/3 failed: AI Provider timed out after 50ms
+[WORKER] Job job_timeout_test attempt 2/3 failed: AI Provider timed out after 50ms
+[WORKER] Job job_timeout_test attempt 3/3 failed: AI Provider timed out after 50ms
+✔ Provider Timeout Handling: catches timeout, retries, and fails gracefully (377.1771ms)
+✔ Controlled Concurrency Cap: respects MAX_CONCURRENT_JOBS limit under load (310.3908ms)
+✔ Follow-up AI Action: executes Role 2 and generates structured interview rubric (101.1883ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1607.2659

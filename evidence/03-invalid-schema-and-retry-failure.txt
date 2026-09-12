@@ -1,0 +1,16 @@
+=== 6. DELIBERATELY INVALID OUTPUT PRODUCED BY MODEL ===
+{"roleTitle":"X","seniority":"ChiefExecutiveOfficer","minYearsExperience":-5,"responsibilities":[]}
+
+=== 7 & 8. VALIDATION FAILURE BEHAVIOR & RETRY HANDLING ===
+Initial Attempt (1/3): Failed application Zod schema assertion.
+Retry Attempt (2/3):   Re-invoked model; failed schema assertion.
+Retry Attempt (3/3):   Re-invoked model; retries exhausted (maxRetries = 2).
+Final State:           Graceful failure recorded; user informed honestly.
+
+=== 2 & 3. FAILED JOB RECORD IN DATABASE & ERROR MESSAGE ===
+Job ID:            job_failed_evidence_1
+Status:            failed
+Attempts Recorded: 3 of 3
+Error Message:     "Model output failed schema validation: roleTitle: Role title must be at least 2 characters; seniority: Invalid option: expected one of "Junior"|"Mid"|"Senior"|"Staff"|"Lead"; department: Invalid input: expected string, received undefined; requiredSkills: Invalid input: expected array, received undefined; minYearsExperience: Years of experience cannot be negative; responsibilities: At least one responsibility is required"
+Created At:        1789212194 (2026-09-12T11:23:14.000Z)
+Updated At:        1789212195 (2026-09-12T11:23:15.000Z)

@@ -1,0 +1,26 @@
+=== 1 & 10. SUCCESSFUL JOB IN JOBS TABLE & STORAGE KEY INVARIANT ===
+Job ID:            job_success_evidence_1
+User ID:           u_evidence
+Status:            done
+Attempts:          1
+Original Filename: lead_architect_spec.txt
+File Size Bytes:   467
+Storage Key:       C:\Users\User\Desktop\FOUR BUILD ACCESSMENT\assessment-3-ai-integration\evidence_storage\lead_architect_spec.txt
+Created At:        1789212194 (2026-09-12T11:23:14.000Z)
+Updated At:        1789212194 (2026-09-12T11:23:14.000Z)
+Error Message:     NULL (Success)
+
+=== STORAGE VERIFICATION ===
+Does DB row contain file contents directly? NO
+Database stores only the disk path/key:     "C:\Users\User\Desktop\FOUR BUILD ACCESSMENT\assessment-3-ai-integration\evidence_storage\lead_architect_spec.txt"
+File exists on disk at storage key:         YES
+Disk File Contents Preview:
+Position: Lead Distributed Systems Architect
+      Department: Core Infrastructure
+      Requirements:
+      - 8+ years experience in distributed backend systems.
+      - Mastery of Go, Kubernetes, Kafka, and PostgreSQL.
+      - Track record of designing fault-tolerant consensus systems.
+      Responsibilities:
+      - Lead architectural roadmap for planetary scale distributed storage.
+      - Mentor senior engineers and conduct strict design reviews.
