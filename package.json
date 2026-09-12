@@ -1,0 +1,29 @@
+{
+  "name": "assessment-3-ai-integration",
+  "version": "1.0.0",
+  "description": "Assessment 3: AI Integration Slice with asynchronous worker queue, concurrency caps, schema validation, and two distinct AI roles",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "keywords": [
+    "ai",
+    "queue",
+    "concurrency",
+    "structured-output",
+    "schema-validation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@node-rs/argon2": "^2.2.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "multer": "^2.3.0",
+    "zod": "^4.6.2"
+  }
+}
