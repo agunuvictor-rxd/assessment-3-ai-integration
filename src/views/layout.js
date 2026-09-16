@@ -1,3 +1,5 @@
+import { escapeHtml } from '../utils/html.js';
+
 export function renderLayout({ title, user = null, content, scripts = '' }) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -121,15 +123,6 @@ export function renderLayout({ title, user = null, content, scripts = '' }) {
     ${content}
   </main>
   ${scripts}
-</body>
+  </body>
 </html>`;
-}
-
-function escapeHtml(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 }

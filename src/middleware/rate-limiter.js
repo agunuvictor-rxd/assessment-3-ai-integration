@@ -1,6 +1,8 @@
 class RateLimiterStore {
   constructor() {
     this.hits = new Map();
+    this.cleanupTimer = setInterval(() => this.purgeExpired(), 5 * 60 * 1000);
+    if (this.cleanupTimer.unref) this.cleanupTimer.unref();
   }
 
   recordHit(key, windowMs) {
@@ -17,8 +19,21 @@ class RateLimiterStore {
     return { count: entry.count, resetTime: entry.resetTime };
   }
 
+  purgeExpired() {
+    const now = Date.now();
+    for (const [key, entry] of this.hits) {
+      if (now > entry.resetTime) {
+        this.hits.delete(key);
+      }
+    }
+  }
+
   reset() {
     this.hits.clear();
+  }
+
+  stop() {
+    if (this.cleanupTimer) clearInterval(this.cleanupTimer);
   }
 }
 

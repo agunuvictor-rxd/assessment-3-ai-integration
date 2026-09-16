@@ -114,9 +114,9 @@ aiRouter.get('/jobs/:id', requireAuth, (req, res) => {
       storageKey: job.storage_key,
       errorMessage: job.error_message,
       rawOutput: job.raw_output,
-      resultJson: job.result_json ? JSON.parse(job.result_json) : null,
+      resultJson: safeJsonParse(job.result_json),
       followUpAction: job.follow_up_action,
-      followUpResult: job.follow_up_result ? JSON.parse(job.follow_up_result) : null,
+      followUpResult: safeJsonParse(job.follow_up_result),
       createdAt: job.created_at,
       updatedAt: job.updated_at,
     },
@@ -128,7 +128,13 @@ aiRouter.get('/jobs/:id', requireAuth, (req, res) => {
  */
 aiRouter.post('/jobs/:id/follow-up', requireAuth, followUpLimiter, async (req, res) => {
   try {
-    const rubric = await executeFollowUpAction(req.params.id);
+    const db = getDatabase();
+    const job = db.prepare('SELECT id, user_id FROM jobs WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
+    if (!job) {
+      return res.status(404).json({ success: false, error: 'Job not found.' });
+    }
+
+    const rubric = await executeFollowUpAction(job.id);
     return res.status(200).json({
       success: true,
       rubric,
@@ -140,3 +146,12 @@ aiRouter.post('/jobs/:id/follow-up', requireAuth, followUpLimiter, async (req, r
     });
   }
 });
+
+function safeJsonParse(value) {
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch (e) {
+    return null;
+  }
+}

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import http from 'node:http';
 import { createApp } from '../src/app.js';
 import { getDatabase, closeDatabase } from '../src/db.js';
 import { rateLimiterStore } from '../src/middleware/rate-limiter.js';
@@ -272,4 +273,196 @@ test('Follow-up AI Action: executes Role 2 and generates structured interview ru
   const updatedJob = db.prepare('SELECT * FROM jobs WHERE id = ?').get(jobId);
   assert.equal(updatedJob.follow_up_action, 'interview_rubric');
   assert.ok(updatedJob.follow_up_result, 'Follow up result must be stored in database');
+});
+
+function httpRequest(app, method, route, { cookie } = {}) {
+  return new Promise((resolve, reject) => {
+    const server = app.listen(0, () => {
+      const { port } = server.address();
+      const req = http.request({
+        hostname: '127.0.0.1',
+        port,
+        path: route,
+        method,
+        headers: cookie ? { Cookie: cookie } : {},
+      }, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          server.close();
+          const setCookie = res.headers['set-cookie'] || [];
+          resolve({ status: res.statusCode, body: data, setCookie });
+        });
+      });
+      req.on('error', reject);
+      req.end();
+    });
+  });
+}
+
+function signupViaHttp(app, name, email, password) {
+  return new Promise((resolve, reject) => {
+    const server = app.listen(0, () => {
+      const { port } = server.address();
+      const req = http.request({
+        hostname: '127.0.0.1',
+        port,
+        path: '/api/auth/signup',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      }, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          server.close();
+          resolve({ status: res.statusCode, body: data, setCookie: res.headers['set-cookie'] || [] });
+        });
+      });
+      req.on('error', reject);
+      req.write(JSON.stringify({ name, email, password }));
+      req.end();
+    });
+  });
+}
+
+function extractCookie(setCookieArray) {
+  for (const raw of setCookieArray) {
+    const match = raw.match(/^ai_sid=([^;]+)/);
+    if (match) return `ai_sid=${match[1]}`;
+  }
+  return null;
+}
+
+test('Job Status Endpoint: returns completed job details for job owner', async () => {
+  const db = getDatabase(':memory:');
+
+  const app = createApp();
+  const signupRes = await signupViaHttp(app, 'Owner User', 'jobstatus@example.com', 'pass123456');
+  assert.equal(signupRes.status, 201);
+
+  const cookie = extractCookie(signupRes.setCookie);
+  assert.ok(cookie, 'Signup must return session cookie');
+
+  const owner = db.prepare("SELECT id FROM users WHERE email = 'jobstatus@example.com'").get();
+  const now = Math.floor(Date.now() / 1000);
+
+  const validatedExtraction = {
+    roleTitle: 'Staff DevOps Engineer',
+    seniority: 'Staff',
+    department: 'Engineering',
+    requiredSkills: ['Docker', 'Kubernetes'],
+    minYearsExperience: 5,
+    responsibilities: ['Manage CI/CD pipelines', 'Ensure zero downtime releases'],
+  };
+
+  db.prepare(`
+    INSERT INTO jobs (
+      id, user_id, status, attempts, storage_key, original_filename, file_size_bytes,
+      result_json, created_at, updated_at
+    ) VALUES (?, ?, 'done', 1, './storage/uploads/fake.txt', 'spec.txt', 100, ?, ?, ?)
+  `).run('job_status_test', owner.id, JSON.stringify(validatedExtraction), now, now);
+
+  const res = await httpRequest(app, 'GET', '/api/ai/jobs/job_status_test', { cookie });
+  assert.equal(res.status, 200);
+  const body = JSON.parse(res.body);
+  assert.equal(body.success, true);
+  assert.equal(body.job.id, 'job_status_test');
+  assert.equal(body.job.status, 'done');
+  assert.equal(body.job.resultJson.roleTitle, 'Staff DevOps Engineer');
+});
+
+test('Job Status Endpoint: hides other users jobs (ownership isolation)', async () => {
+  const db = getDatabase(':memory:');
+
+  const app = createApp();
+  const signupRes = await signupViaHttp(app, 'Owner B', 'ownership@example.com', 'pass123456');
+  assert.equal(signupRes.status, 201);
+
+  const cookie = extractCookie(signupRes.setCookie);
+
+  const now = Math.floor(Date.now() / 1000);
+  const intruderId = 'u_owner_a_intruder';
+  db.prepare(`
+    INSERT INTO users (id, name, email, password_hash, created_at)
+    VALUES (?, 'Intruder User', 'intruder_a@example.com', 'hash', ?)
+  `).run(intruderId, now);
+
+  const filePath = path.join(testStorageDir, 'owner_spec.txt');
+  fs.writeFileSync(filePath, 'Job description with Docker and Kubernetes', 'utf-8');
+
+  db.prepare(`
+    INSERT INTO jobs (
+      id, user_id, status, attempts, storage_key, original_filename, file_size_bytes, created_at, updated_at
+    ) VALUES (?, ?, 'done', 1, ?, 'ownera_spec.txt', 100, ?, ?)
+  `).run('job_owner_only', intruderId, filePath, now, now);
+
+  const res = await httpRequest(app, 'GET', '/api/ai/jobs/job_owner_only', { cookie });
+  assert.equal(res.status, 404, 'Job owned by another user must not be visible');
+  const body = JSON.parse(res.body);
+  assert.equal(body.success, false);
+});
+
+test('Follow-up Endpoint: generates rubric via HTTP for job owner', async () => {
+  const db = getDatabase(':memory:');
+
+  const app = createApp();
+  const signupRes = await signupViaHttp(app, 'HTTP Rubric', 'httprubric@example.com', 'pass123456');
+  assert.equal(signupRes.status, 201);
+
+  const cookie = extractCookie(signupRes.setCookie);
+  assert.ok(cookie);
+
+  const owner = db.prepare("SELECT id FROM users WHERE email = 'httprubric@example.com'").get();
+  const now = Math.floor(Date.now() / 1000);
+
+  const validatedExtraction = {
+    roleTitle: 'Senior Platform Engineer',
+    seniority: 'Senior',
+    department: 'Engineering',
+    requiredSkills: ['Go', 'Kubernetes', 'Distributed Systems'],
+    minYearsExperience: 5,
+    responsibilities: ['Architect Kubernetes clusters', 'Optimize low latency networking'],
+  };
+
+  db.prepare(`
+    INSERT INTO jobs (
+      id, user_id, status, attempts, storage_key, original_filename, file_size_bytes,
+      result_json, created_at, updated_at
+    ) VALUES (?, ?, 'done', 1, 'dummy_key', 'spec.txt', 100, ?, ?, ?)
+  `).run('job_http_rubric', owner.id, JSON.stringify(validatedExtraction), now, now);
+
+  const res = await httpRequest(app, 'POST', '/api/ai/jobs/job_http_rubric/follow-up', { cookie });
+  assert.equal(res.status, 200);
+  const body = JSON.parse(res.body);
+  assert.equal(body.success, true);
+  assert.equal(body.rubric.roleTitle, 'Senior Platform Engineer');
+  assert.ok(Array.isArray(body.rubric.competencies));
+  assert.ok(body.rubric.competencies.length >= 1);
+});
+
+test('Follow-up Endpoint: rejects follow-up on another users job', async () => {
+  const db = getDatabase(':memory:');
+
+  const app = createApp();
+  const signupRes = await signupViaHttp(app, 'Intruder', 'intruder_rub@example.com', 'pass123456');
+  assert.equal(signupRes.status, 201);
+
+  const cookie = extractCookie(signupRes.setCookie);
+
+  const now = Math.floor(Date.now() / 1000);
+  const jobOwnerUserId = 'u_rub_owner';
+  db.prepare(`
+    INSERT INTO users (id, name, email, password_hash, created_at)
+    VALUES (?, 'Rubric Owner', 'rubowner_private@example.com', 'hash', ?)
+  `).run(jobOwnerUserId, now);
+
+  db.prepare(`
+    INSERT INTO jobs (
+      id, user_id, status, attempts, storage_key, original_filename, file_size_bytes,
+      result_json, created_at, updated_at
+    ) VALUES (?, ?, 'done', 1, 'dummy_key', 'spec.txt', 100, '{}', ?, ?)
+  `).run('job_rub_private', jobOwnerUserId, now, now);
+
+  const res = await httpRequest(app, 'POST', '/api/ai/jobs/job_rub_private/follow-up', { cookie });
+  assert.equal(res.status, 404, 'Follow-up on another users job must be rejected with 404');
 });

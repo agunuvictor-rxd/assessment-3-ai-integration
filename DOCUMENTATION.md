@@ -296,7 +296,7 @@ If I built this again, the single biggest change I would make is replacing the i
 All evidence below was generated automatically by executing `node scripts/generate-evidence.js` and inspecting the output files in `evidence/`.
 
 ### 1. Jobs Table Inspection (Successful Run vs Failed Run with Error Message)
-Source file: `evidence/01-jobs-table-success-and-failure.txt`
+Source file: `evidence/01-successful-job-and-storage-key.txt`
 ```text
 === SUCCESSFUL JOB RECORD IN SQLITE ===
 Job ID:            job_success_101
@@ -324,7 +324,7 @@ Created At:        1773489810
 ```
 
 ### 2. Raw Model Output Alongside Validated Parsed Result
-Source file: `evidence/02-raw-output-versus-parsed-result.txt`
+Source file: `evidence/02-raw-model-output-and-validated-json.txt`
 ```text
 === RAW LLM MODEL OUTPUT (TEXT STRING FROM PROVIDER) ===
 ```json
@@ -353,7 +353,7 @@ Parsed JavaScript Object:
 ```
 
 ### 3. Schema Validation Failure Evidence (Deliberately Broken Schema)
-Source file: `evidence/03-validation-failure-retry-handling.txt`
+Source file: `evidence/03-invalid-schema-and-retry-failure.txt`
 ```text
 === DELIBERATELY BROKEN RAW MODEL RESPONSE ===
 {"roleTitle":"X","seniority":"SuperSenior","minYearsExperience":-5}
@@ -367,7 +367,7 @@ Final Status in SQLite: failed | Error Message: "Model output failed schema vali
 ```
 
 ### 4. Controlled Concurrency Cap Evidence (Uploading 5 Files with Cap = 2)
-Source file: `evidence/04-concurrency-cap-holding.txt`
+Source file: `evidence/04-concurrency-cap-under-load.txt`
 ```text
 === CONCURRENCY CAP TEST (5 Files Uploaded Simultaneously | MAX_CONCURRENT_JOBS = 2) ===
 Time T+0ms: Uploaded Job 1, Job 2, Job 3, Job 4, Job 5
@@ -380,7 +380,7 @@ Verifiable Result: Active workers NEVER exceeded 2; extra requests waited safely
 ```
 
 ### 5. Storage Key Database Invariant Verification
-Source file: `evidence/05-storage-key-database-verification.txt`
+Source file: `evidence/01-successful-job-and-storage-key.txt`
 ```text
 === SQLITE DATABASE RECORD (SELECT id, storage_key, original_filename FROM jobs WHERE id = 'job_success_101') ===
 Job ID:            job_success_101

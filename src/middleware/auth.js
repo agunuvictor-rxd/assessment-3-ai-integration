@@ -5,7 +5,7 @@ export function requireAuth(req, res, next) {
   const session = validateSession(sessionId);
 
   if (!session) {
-    if (req.accepts('html') && !req.path.startsWith('/api/')) {
+    if (req.accepts('html') && !req.originalUrl.startsWith('/api/')) {
       return res.redirect('/signin');
     }
     return res.status(401).json({

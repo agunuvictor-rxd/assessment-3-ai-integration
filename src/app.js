@@ -4,12 +4,14 @@ import { config } from './config.js';
 import { authRouter } from './routes/auth.js';
 import { aiRouter } from './routes/ai.js';
 import { viewsRouter } from './routes/views.js';
+import { requestLogger } from './middleware/logger.js';
 
 export function createApp() {
   const app = express();
 
   app.set('trust proxy', 1);
 
+  app.use(requestLogger);
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   app.use(cookieParser(config.sessionSecret));

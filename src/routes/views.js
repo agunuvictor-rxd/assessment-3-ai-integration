@@ -9,6 +9,15 @@ import {
   signupView,
 } from '../views/pages.js';
 
+function safeJsonParse(value) {
+  if (!value) return null;
+  try {
+    return JSON.parse(value);
+  } catch (e) {
+    return null;
+  }
+}
+
 export const viewsRouter = Router();
 
 viewsRouter.get('/', (req, res) => {
@@ -43,8 +52,8 @@ viewsRouter.get('/jobs/:id', requireAuth, (req, res) => {
 
   const parsedJob = {
     ...job,
-    result_json: job.result_json ? JSON.parse(job.result_json) : null,
-    follow_up_result: job.follow_up_result ? JSON.parse(job.follow_up_result) : null,
+    result_json: safeJsonParse(job.result_json),
+    follow_up_result: safeJsonParse(job.follow_up_result),
   };
 
   res.send(jobDetailsView({ user: req.user, job: parsedJob }));

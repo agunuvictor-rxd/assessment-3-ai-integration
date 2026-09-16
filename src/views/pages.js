@@ -1,4 +1,5 @@
 import { renderLayout } from './layout.js';
+import { escapeHtml } from '../utils/html.js';
 
 export function uploadView({ user }) {
   const content = `
@@ -209,6 +210,12 @@ export function jobDetailsView({ user, job }) {
             }
           } catch (e) {}
         }, 1200);
+
+        // Cancel polling when navigating away
+        window.addEventListener('beforeunload', () => clearInterval(pollInterval));
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'hidden') clearInterval(pollInterval);
+        });
       ` : ''}
 
       async function generateRubric(jobId) {
@@ -365,11 +372,4 @@ export function signupView() {
   return renderLayout({ title: 'Sign Up', content, scripts });
 }
 
-function escapeHtml(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
+
